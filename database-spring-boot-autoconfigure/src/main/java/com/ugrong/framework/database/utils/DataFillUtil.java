@@ -16,10 +16,6 @@ public class DataFillUtil {
         return getPredefinedVal(PredefinedValHolder::getCurrentUserId);
     }
 
-    public static <PK extends Serializable> PK getPrimaryKey() {
-        return getPredefinedVal(PredefinedValHolder::generatePrimaryKey);
-    }
-
     public static <PK extends Serializable> PK getTenantId() {
         return getPredefinedVal(PredefinedValHolder::getTenantId);
     }

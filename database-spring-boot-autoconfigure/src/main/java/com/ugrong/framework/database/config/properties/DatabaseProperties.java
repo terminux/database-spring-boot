@@ -2,9 +2,7 @@ package com.ugrong.framework.database.config.properties;
 
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.validation.annotation.Validated;
 
-import javax.validation.constraints.NotEmpty;
 import java.util.Arrays;
 import java.util.List;
 
@@ -12,7 +10,6 @@ import java.util.List;
  * 数据库配置
  */
 @ConfigurationProperties(prefix = "app.config.database")
-@Validated
 public class DatabaseProperties {
 
     /**
@@ -28,8 +25,17 @@ public class DatabaseProperties {
     /**
      * 事务切面拦截规则
      */
-    @NotEmpty(message = "事务切面拦截规则不能为空")
-    private String txExpression;
+    private String txExpression = "execution (* com.ugrong.framework.api..*.service..*.*(..))";
+
+    /**
+     * 雪花算法，终端ID，默认：0.
+     */
+    private Long workerId = 0L;
+
+    /**
+     * 雪花算法，数据中心ID，默认：1.
+     */
+    private Long dataCenterId = 1L;
 
     public List<String> getExcludeSqlTables() {
         return excludeSqlTables;
@@ -55,12 +61,30 @@ public class DatabaseProperties {
         this.txExpression = txExpression;
     }
 
+    public Long getWorkerId() {
+        return workerId;
+    }
+
+    public void setWorkerId(Long workerId) {
+        this.workerId = workerId;
+    }
+
+    public Long getDataCenterId() {
+        return dataCenterId;
+    }
+
+    public void setDataCenterId(Long dataCenterId) {
+        this.dataCenterId = dataCenterId;
+    }
+
     @Override
     public String toString() {
         return "DatabaseProperties{" +
                 "excludeSqlTables=" + excludeSqlTables +
                 ", entityPackages=" + Arrays.toString(entityPackages) +
                 ", txExpression='" + txExpression + '\'' +
+                ", workerId=" + workerId +
+                ", dataCenterId=" + dataCenterId +
                 '}';
     }
 }

@@ -15,13 +15,6 @@ public interface PredefinedValHolder {
     <PK extends Serializable> PK getCurrentUserId();
 
     /**
-     * 生成主键.
-     *
-     * @return the pk
-     */
-    <PK extends Serializable> PK generatePrimaryKey();
-
-    /**
      * 获取当前的租户id.
      *
      * @return the tenant

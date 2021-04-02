@@ -17,6 +17,20 @@
       "type": "java.lang.String",
       "sourceType": "com.ugrong.framework.database.config.properties.DatabaseProperties",
       "description": "事务切面表达式."
+    },
+    {
+      "name": "app.config.database.worker-id",
+      "type": "java.lang.Long",
+      "defaultValue": 0,
+      "sourceType": "com.ugrong.framework.database.config.properties.DatabaseProperties",
+      "description": "雪花算法，终端ID，默认：0."
+    },
+    {
+      "name": "app.config.database.data-center-id",
+      "type": "java.lang.Long",
+      "defaultValue": 1,
+      "sourceType": "com.ugrong.framework.database.config.properties.DatabaseProperties",
+      "description": "雪花算法，数据中心ID，默认：1."
     }
   ]
 }

@@ -4,6 +4,7 @@ import com.ugrong.framework.database.config.properties.DatabaseProperties;
 import org.springframework.aop.aspectj.AspectJExpressionPointcut;
 import org.springframework.aop.support.DefaultPointcutAdvisor;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionManager;
 import org.springframework.transaction.interceptor.*;
@@ -12,8 +13,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+@Configuration
 public class TxAutoConfiguration {
-
 
     /* 事务拦截器 */
     @Bean("txAdvice")

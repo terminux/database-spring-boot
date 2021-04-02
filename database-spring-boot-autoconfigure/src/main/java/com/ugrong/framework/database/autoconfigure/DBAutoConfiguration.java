@@ -1,6 +1,7 @@
 package com.ugrong.framework.database.autoconfigure;
 
-import com.baomidou.mybatisplus.autoconfigure.MybatisPlusPropertiesCustomizer;
+import com.baomidou.mybatisplus.core.incrementer.DefaultIdentifierGenerator;
+import com.baomidou.mybatisplus.core.incrementer.IdentifierGenerator;
 import com.ugrong.framework.database.config.properties.DatabaseProperties;
 import com.ugrong.framework.database.handler.ModelMetaDataHandler;
 import com.ugrong.framework.database.sql.handler.DefaultSqlHandlerContainer;
@@ -10,7 +11,6 @@ import com.ugrong.framework.database.sql.listener.SqlExecuteListenerImpl;
 import com.ugrong.framework.database.sql.listener.SqlHandlerLifecycleListener;
 import com.ugrong.framework.database.support.provider.DefaultExtendColumnProvider;
 import com.ugrong.framework.database.support.provider.ExtendColumnProvider;
-import com.ugrong.framework.database.utils.DataFillUtil;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -26,8 +26,9 @@ public class DBAutoConfiguration {
     }
 
     @Bean
-    public MybatisPlusPropertiesCustomizer plusPropertiesCustomizer() {
-        return properties -> properties.getGlobalConfig().setIdentifierGenerator(entity -> DataFillUtil.getPrimaryKey());
+    @ConditionalOnMissingBean
+    public IdentifierGenerator idGenerator(DatabaseProperties databaseProperties) {
+        return new DefaultIdentifierGenerator(databaseProperties.getWorkerId(), databaseProperties.getDataCenterId());
     }
 
     @Bean
