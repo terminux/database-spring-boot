@@ -1,0 +1,3 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.ugrong.framework.database.autoconfigure.TxAutoConfiguration,\
+com.ugrong.framework.database.autoconfigure.DBAutoConfiguration

@@ -1,0 +1,22 @@
+{
+  "properties": [
+    {
+      "name": "app.config.database.exclude-sql-tables",
+      "type": "java.lang.String",
+      "sourceType": "com.ugrong.framework.database.config.properties.DatabaseProperties",
+      "description": "不需要监听sql的表集合，支持正则表达式."
+    },
+    {
+      "name": "app.config.database.entity-packages",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.ugrong.framework.database.config.properties.DatabaseProperties",
+      "description": "要扫描的entity包，默认扫描所有包，用来做别名映射，支持联表动态查询."
+    },
+    {
+      "name": "app.config.database.tx-expression",
+      "type": "java.lang.String",
+      "sourceType": "com.ugrong.framework.database.config.properties.DatabaseProperties",
+      "description": "事务切面表达式."
+    }
+  ]
+}
