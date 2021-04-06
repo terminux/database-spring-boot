@@ -3,23 +3,23 @@ package com.ugrong.framework.database.support.builder;
 import com.baomidou.mybatisplus.core.conditions.SharedString;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.segments.MergeSegments;
+import com.baomidou.mybatisplus.core.enums.SqlKeyword;
 import com.baomidou.mybatisplus.core.toolkit.LambdaUtils;
 import com.baomidou.mybatisplus.core.toolkit.support.ColumnCache;
 import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
 import com.baomidou.mybatisplus.core.toolkit.support.SerializedLambda;
-import com.ugrong.framework.database.domain.ApplicationHolder;
-import com.ugrong.framework.database.support.provider.ExtendColumnProvider;
+import com.ugrong.framework.database.support.QueryExtension;
 import com.ugrong.framework.database.utils.Assert;
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
+import com.ugrong.framework.database.vo.Pair;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.ibatis.reflection.property.PropertyNamer;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Field;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
+
+import static com.baomidou.mybatisplus.core.enums.SqlKeyword.*;
 
 public class LambdaQueryBuilder<T> extends LambdaQueryWrapper<T> {
 
@@ -58,18 +58,73 @@ public class LambdaQueryBuilder<T> extends LambdaQueryWrapper<T> {
 
     @Override
     protected String columnToString(SFunction<T, ?> column, boolean onlyColumn) {
-        if (StringUtils.isBlank(alias)) {
-            return super.columnToString(column, onlyColumn);
-        }
+        Assert.notBlank(alias, "表别名不能为空");
         //启用别名
-        return this.getAliasColumn(LambdaUtils.resolve(column), onlyColumn, alias);
+        return this.getAliasColumn(this.resolveColumn(column), onlyColumn);
     }
 
-    private String getAliasColumn(SerializedLambda lambda, boolean onlyColumn, String alias) {
+    @Override
+    public LambdaQueryWrapper<T> orderByAsc(SFunction<T, ?> column) {
+        return this.orderByAsc(true, column);
+    }
+
+    @SafeVarargs
+    @Override
+    public final LambdaQueryWrapper<T> orderByAsc(SFunction<T, ?>... columns) {
+        return this.orderByAsc(true, columns);
+    }
+
+    @SafeVarargs
+    @Override
+    public final LambdaQueryWrapper<T> orderByAsc(boolean condition, SFunction<T, ?>... columns) {
+        return this.orderBy(condition, true, columns);
+    }
+
+    @Override
+    public final LambdaQueryWrapper<T> orderByDesc(SFunction<T, ?> column) {
+        return this.orderByDesc(true, column);
+    }
+
+    @SafeVarargs
+    @Override
+    public final LambdaQueryWrapper<T> orderByDesc(SFunction<T, ?>... columns) {
+        return this.orderByDesc(true, columns);
+    }
+
+    @SafeVarargs
+    @Override
+    public final LambdaQueryWrapper<T> orderByDesc(boolean condition, SFunction<T, ?>... columns) {
+        return this.orderBy(condition, false, columns);
+    }
+
+    @Override
+    @SafeVarargs
+    public final LambdaQueryWrapper<T> orderBy(boolean condition, boolean isAsc, SFunction<T, ?>... columns) {
+        if (ArrayUtils.isNotEmpty(columns)) {
+            SqlKeyword mode = isAsc ? ASC : DESC;
+            for (SFunction<T, ?> column : columns) {
+                this.doIt(condition, ORDER_BY, () -> this.getSortColumn(column), mode);
+            }
+        }
+        return typedThis;
+    }
+
+    protected Pair<Class<?>, String> resolveColumn(SFunction<T, ?> column) {
+        SerializedLambda lambda = LambdaUtils.resolve(column);
         Class<?> lambdaClass = lambda.getInstantiatedType();
         this.tryInitCache(lambdaClass, alias);
         String fieldName = PropertyNamer.methodToProperty(lambda.getImplMethodName());
-        ColumnCache columnCache = this.getColumnCache(fieldName, lambdaClass);
+        return Pair.of(lambdaClass, fieldName);
+    }
+
+    protected String getSortColumn(SFunction<T, ?> column) {
+        Pair<Class<?>, String> pair = this.resolveColumn(column);
+        String aliasColumn = this.getAliasColumn(pair, true);
+        return QueryExtension.supportChineseSort(pair.getLeft(), pair.getRight(), aliasColumn);
+    }
+
+    private String getAliasColumn(Pair<Class<?>, String> pair, boolean onlyColumn) {
+        ColumnCache columnCache = this.getColumnCache(pair.getLeft(), pair.getRight());
         return onlyColumn ? columnCache.getColumn() : columnCache.getColumnSelect();
     }
 
@@ -79,40 +134,14 @@ public class LambdaQueryBuilder<T> extends LambdaQueryWrapper<T> {
             if (entityClass != null) {
                 lambdaClass = entityClass;
             }
-            this.columnMap = getAliasColumnMap(lambdaClass, alias);
+            this.columnMap = QueryExtension.getAliasColumnMap(lambdaClass, alias);
             this.initColumnMap = true;
         }
     }
 
-    private ColumnCache getColumnCache(String fieldName, Class<?> lambdaClass) {
+    private ColumnCache getColumnCache(Class<?> lambdaClass, String fieldName) {
         ColumnCache column = this.columnMap.get(LambdaUtils.formatKey(fieldName));
         Assert.notNull(column, String.format("Can not find lambda cache for this property [%s] of entity [%s]", fieldName, lambdaClass.getName()));
         return column;
-    }
-
-    public static Map<String, ColumnCache> getAliasColumnMap(Class<?> entityClass, String alias) {
-        Map<String, ColumnCache> columnMap = new HashMap<>();
-
-        Map<String, ColumnCache> cacheColumnMap = LambdaUtils.getColumnMap(entityClass);
-        if (cacheColumnMap == null) {
-            columnMap = new HashMap<>();
-        } else if (!cacheColumnMap.isEmpty()) {
-            String prefix = alias.concat(".");
-            columnMap = cacheColumnMap.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, entry -> {
-                ColumnCache cache = entry.getValue();
-                String aliasColumn = prefix.concat(cache.getColumn());
-                return new ColumnCache(aliasColumn, cache.getColumnSelect());
-            }));
-        }
-
-        ExtendColumnProvider provider = ApplicationHolder.getBean(ExtendColumnProvider.class);
-        if (provider != null) {
-            Map<String, ColumnCache> extendColumnMap = provider.get(entityClass);
-            if (ObjectUtils.isNotEmpty(extendColumnMap)) {
-                columnMap.putAll(extendColumnMap);
-            }
-        }
-        Assert.isNotTrue(columnMap.isEmpty(), String.format("Can not find lambda cache for this entity [%s]", entityClass.getName()));
-        return columnMap;
     }
 }

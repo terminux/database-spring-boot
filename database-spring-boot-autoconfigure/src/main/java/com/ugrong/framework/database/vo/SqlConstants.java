@@ -52,4 +52,8 @@ public abstract class SqlConstants {
      */
     public static final String DEFAULT_TABLE_ALIAS_NAME = "t";
 
+    /**
+     * 中文排序SQL片段
+     */
+    public static final String SQL_CHINESE_SORT = "CONVERT(%s USING GBK)";
 }

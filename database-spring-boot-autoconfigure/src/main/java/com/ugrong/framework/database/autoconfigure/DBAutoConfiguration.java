@@ -9,8 +9,11 @@ import com.ugrong.framework.database.sql.handler.SqlHandlerContainer;
 import com.ugrong.framework.database.sql.listener.SqlExecuteListener;
 import com.ugrong.framework.database.sql.listener.SqlExecuteListenerImpl;
 import com.ugrong.framework.database.sql.listener.SqlHandlerLifecycleListener;
-import com.ugrong.framework.database.support.provider.DefaultExtendColumnProvider;
+import com.ugrong.framework.database.support.provider.EntityFieldProvider;
 import com.ugrong.framework.database.support.provider.ExtendColumnProvider;
+import com.ugrong.framework.database.support.provider.ProviderInit;
+import com.ugrong.framework.database.support.provider.impl.DefaultEntityFieldProvider;
+import com.ugrong.framework.database.support.provider.impl.DefaultExtendColumnProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -51,5 +54,16 @@ public class DBAutoConfiguration {
     @ConditionalOnMissingBean
     public ExtendColumnProvider extendColumnProvider(DatabaseProperties databaseProperties) {
         return new DefaultExtendColumnProvider(databaseProperties);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public EntityFieldProvider entityFieldProvider(DatabaseProperties databaseProperties) {
+        return new DefaultEntityFieldProvider(databaseProperties);
+    }
+
+    @Bean
+    public ProviderInit providerInit(DatabaseProperties databaseProperties, ExtendColumnProvider extendColumnProvider, EntityFieldProvider entityFieldProvider) {
+        return new ProviderInit(databaseProperties, extendColumnProvider, entityFieldProvider);
     }
 }

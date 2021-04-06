@@ -15,6 +15,7 @@ import com.ugrong.framework.database.condition.impl.SortCondition;
 import com.ugrong.framework.database.enums.EnumQueryOperator;
 import com.ugrong.framework.database.model.AbstractModel;
 import com.ugrong.framework.database.service.IBaseService;
+import com.ugrong.framework.database.support.QueryExtension;
 import com.ugrong.framework.database.support.builder.LambdaQueryBuilder;
 import com.ugrong.framework.database.support.builder.QueryBuilder;
 import com.ugrong.framework.database.utils.Assert;
@@ -71,13 +72,12 @@ public abstract class AbstractBaseService<Mapper extends BaseMapper<Entity>, Ent
     private QueryWrapper<Entity> toWrapper(RequestVO<Entity> request, String alias) {
         QueryWrapper<Entity> wrapper;
         Map<String, ColumnCache> columnMap;
-        Class<Entity> entityClass = this.getEntityClass();
         if (StringUtils.isBlank(alias)) {
             wrapper = this.wrapper();
-            columnMap = LambdaUtils.getColumnMap(entityClass);
+            columnMap = LambdaUtils.getColumnMap(this.getEntityClass());
         } else {
             wrapper = new QueryBuilder<>(null, alias);
-            columnMap = LambdaQueryBuilder.getAliasColumnMap(entityClass, alias);
+            columnMap = QueryExtension.getAliasColumnMap(this.getEntityClass(), alias);
         }
         this.parseCondition(wrapper, columnMap, request.getSearch());
         this.parseCondition(wrapper, columnMap, request.getSort());
@@ -149,6 +149,7 @@ public abstract class AbstractBaseService<Mapper extends BaseMapper<Entity>, Ent
         } else if (condition instanceof SortCondition) {
             SortCondition sort = (SortCondition) condition;
             Assert.notNull(sort.getType(), "排序类型不能为空");
+            condition.setColumnName(QueryExtension.supportChineseSort(this.getEntityClass(), condition.getField(), condition.getColumnName()));
         }
     }
 
