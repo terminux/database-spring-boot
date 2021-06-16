@@ -16,6 +16,7 @@
       "name": "app.config.database.tx-expression",
       "type": "java.lang.String",
       "sourceType": "com.ugrong.framework.database.config.properties.DatabaseProperties",
+      "defaultValue": "execution (* com.ugrong.framework.api..*.service..*.*(..))",
       "description": "事务切面表达式."
     },
     {

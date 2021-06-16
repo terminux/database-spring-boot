@@ -18,6 +18,7 @@ public class SortCondition extends Condition {
     @ApiModelProperty(value = "排序类型", position = 102)
     private EnumSortType type;
 
+    @Override
     public void wrapper(QueryWrapper<?> wrapper) {
         if (this.getType() == EnumSortType.ASC) {
             wrapper.orderByAsc(this.getColumnName());
